@@ -36,10 +36,10 @@ batch_2 = apply(batch_2, 2, removeOutliers)
 # 1. Batch correction:
 # For SAUCIE: 
 # Save the pre-processed matrix of the two batches as .fcs files to run SAUCIE correction in the terminal
-flowframe_1 = flowFrame(batch_1)
-write.FCS(flowframe_1, "000027_d_C4_preprocessed.fcs")
-flowframe_2 = flowFrame(batch_2)
-write.FCS(flowframe_2, "VG32_(tv.1)-PTc_d_C1_preprocessed.fcs")
+#flowframe_1 = flowFrame(batch_1)
+#write.FCS(flowframe_1, "000027_d_C4_preprocessed.fcs")
+#flowframe_2 = flowFrame(batch_2)
+#write.FCS(flowframe_2, "VG32_(tv.1)-PTc_d_C1_preprocessed.fcs")
 
 # Read infiles after SAUCIE-batch-corrected
 file_3 = read.FCS("000027_d_C4_saucie.fcs") # Batch 1 SAUCIE-corrected data
