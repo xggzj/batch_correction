@@ -37,15 +37,16 @@ batch_2 = apply(batch_2, 2, removeOutliers)
 # For SAUCIE: 
 # Save the pre-processed matrix of the two batches as .fcs files to run SAUCIE correction in the terminal
 flowframe_1 = flowFrame(batch_1)
-write.FCS(flowframe_1, "000027_d_C4_processed.fcs")
+write.FCS(flowframe_1, "000027_d_C4_preprocessed.fcs")
 flowframe_2 = flowFrame(batch_2)
-write.FCS(flowframe_1, "VG32_(tv.1)-PTc_d_C1_processed.fcs")
+write.FCS(flowframe_2, "VG32_(tv.1)-PTc_d_C1_preprocessed.fcs")
 
 # Read infiles after SAUCIE-batch-corrected
 file_3 = read.FCS("000027_d_C4_saucie.fcs") # Batch 1 SAUCIE-corrected data
 file_4 = read.FCS("VG32_(tv.1)-PTc_d_C1_saucie.fcs") # Batch 2 SAUCIE-corrected data
 # Concatenate two batch-corrected data into a single matrix 
 dat.saucie = rbind(file_3@exprs, file_4@exprs)
+dat.saucie = scale(dat.saucie)
 
 # For ComBat, limma and Harmony:  
 # Concatenate the raw data of two batches into a single matrix with cells in the rows and features in the columns
