@@ -35,8 +35,9 @@ dat = lapply(dat, scale)
 
 # 2. Batch correction
 library(harmony)
-batch = as.factor(c(rep(1, nrow(dat[[1]])), rep(2, nrow(dat[[2]])))) 
-dat.harmony = HarmonyMatrix(dat, batch)
+Batch = as.factor(c(rep(1, nrow(dat[[1]])), rep(2, nrow(dat[[2]])))) 
+Dat = rbind(dat[[1]], dat[[2]])
+dat.harmony = HarmonyMatrix(Dat, Batch)
 
 # 3. Visualization
 library(ggplot2)
