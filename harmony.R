@@ -1,5 +1,6 @@
 # 1. Preprocessing
 # Read infiles
+# Read expression data (.fcs):
 readInfiles = function(path){
   library(flowCore)
   fileNames = dir(path)
@@ -8,6 +9,15 @@ readInfiles = function(path){
   return(files)
 }
 files = readInfiles("~/master/infiles")
+
+# Read labels (.csv):
+readLabels = function(path){
+  fileNames = dir(path)
+  filePath = sapply(fileNames, function(x){paste(path,x,sep='/')})
+  files = lapply(filePath, function(x){read.csv(x)}) 
+  return(files)
+}
+labels = readLabels("~/master/labels")
 
 # Read marker names and remove empty channels
 channelFilter = function(file){
@@ -35,9 +45,22 @@ dat = lapply(dat, scale)
 
 # 2. Batch correction
 library(harmony)
-Batch = as.factor(c(rep(1, nrow(dat[[1]])), rep(2, nrow(dat[[2]])))) 
-Dat = rbind(dat[[1]], dat[[2]])
-dat.harmony = HarmonyMatrix(Dat, Batch)
+# Bind all batches into a single expression matrix, Dat
+datBind = function(dat){
+  Dat = dat[[1]]
+  n = length(dat)
+  for (i in 1:(n-1)){
+    Dat = rbind(Dat, dat[[i+1]])
+  }
+  return(Dat)
+}
+Dat = datBind(dat)
+
+# Meta_data: a dataframe with variables to integrate including batch numbers and cell labels
+Meta_data = data.frame(batch = factor(c(rep(1, nrow(labels[[1]])), rep(2, nrow(labels[[2]]))), 
+                       label = factor(c(as.character(labels[[1]]$level1), as.character(labels[[2]]$level1)))))
+
+Dat.harmony = HarmonyMatrix(Dat, Meta_data, "batch")
 
 # 3. Visualization
 library(ggplot2)
