@@ -1,23 +1,21 @@
 # 1. Preprocessing
 # Read infiles
+readInfiles = function(path, filetype = c("fcs", "csv")){
+  fileNames = dir(path)
+  filePath = sapply(fileNames, function(x){paste(path,x,sep='/')})
+  if (filetype == "fcs"){
+    library(flowCore)
+    files = lapply(filePath, function(x){read.FCS(x)})
+  }
+  if (filetype == "csv"){
+    files = lapply(filePath, function(x){read.csv(x)})
+  }
+  return(files)
+}
 # Read expression data (.fcs):
-readInfiles = function(path){
-  library(flowCore)
-  fileNames = dir(path)
-  filePath = sapply(fileNames, function(x){paste(path,x,sep='/')})
-  files = lapply(filePath, function(x){read.FCS(x)}) 
-  return(files)
-}
-files = readInfiles("~/master/infiles")
-
-# Read labels (.csv):
-readLabels = function(path){
-  fileNames = dir(path)
-  filePath = sapply(fileNames, function(x){paste(path,x,sep='/')})
-  files = lapply(filePath, function(x){read.csv(x)}) 
-  return(files)
-}
-labels = readLabels("~/master/labels")
+files = readInfiles("~/master/infiles", "fcs")
+# Read cell type data (.csv):
+labels = readInfiles("~/master/labels", "csv")
 
 # Read marker names and remove empty channels
 channelFilter = function(file){
@@ -63,9 +61,6 @@ Label$batch = c(rep(1,nrow(dat[[1]])), rep(2,nrow(dat[[2]])))
 # MetaData: a dataframe with variables to integrate including batch numbers and cell type labels
 MetaData = data.frame(batch = Label$batch, label = Label$level1)
 
-#Meta_data = data.frame(batch = factor(c(rep(1, nrow(labels[[1]])), rep(2, nrow(labels[[2]]))), 
-#                       label = factor(c(as.character(labels[[1]]$level1), as.character(labels[[2]]$level1)))))
-
 library(harmony)
 Dat.harmony = HarmonyMatrix(Dat, MetaData, "batch")
 
@@ -73,9 +68,7 @@ Dat.harmony = HarmonyMatrix(Dat, MetaData, "batch")
 saveCorrectedFiles = function(Dat.harmony){
   n = length(files)
   r = c()
-  for (i in 1:n){
-    r[i] = nrow(files[[i]])
-  }
+  for (i in 1:n){r[i] = nrow(files[[i]])}
   
   dat.harmony = list()
   r0 = 0
@@ -95,5 +88,15 @@ saveCorrectedFiles = function(Dat.harmony){
 
 dat.harmony = saveCorrectedFiles(Dat.harmony)
 
-# 3. Visualization
+# 3. Visualization 
+# UMAP
+library(umap)
+umap.harmony = umap(Dat.harmony)
+umap.dat = umap(Dat)
+
+# Plot
 library(ggplot2)
+df = data.frame(UMAP1 = umap.dat$layout[,1],
+                UMAP2 = umap.dat$layout[,2],
+                batch = Label$batch)
+gp = ggplot(df, aes(UMAP1, UMAP2, color = ))
