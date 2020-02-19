@@ -44,7 +44,6 @@ dat = lapply(dat, function(x){apply(x, 2, removeOutliers)})
 dat = lapply(dat, scale)
 
 # 2. Batch correction
-library(harmony)
 # Bind the expression data of all batches into a single matrix
 datBind = function(dat){
   Dat = dat[[1]]
@@ -68,7 +67,7 @@ labelBind = function(labels){
 Label = labelBind(labels)
 
 # Input the batch number:
-Label$batch = c(rep(1,nrow(labels[[1]])), rep(2,nrow(labels[[2]])))
+Label$batch = c(rep(1,nrow(dat[[1]])), rep(2,nrow(dat[[2]])))
 
 # MetaData: a dataframe with variables to integrate including batch numbers and cell type labels
 MetaData = data.frame(batch = Label$batch, label = Label$level1)
@@ -76,21 +75,35 @@ MetaData = data.frame(batch = Label$batch, label = Label$level1)
 #Meta_data = data.frame(batch = factor(c(rep(1, nrow(labels[[1]])), rep(2, nrow(labels[[2]]))), 
 #                       label = factor(c(as.character(labels[[1]]$level1), as.character(labels[[2]]$level1)))))
 
+library(harmony)
 Dat.harmony = HarmonyMatrix(Dat, MetaData, "batch")
 
 # Save the batch-corrected files separately
-n = length(files)
-r = c()
-for (i in 1:n){
-  r[i] = nrow(files[[i]]) 
+saveCorrectedFiles = function(Dat.harmony){
+  n = length(files)
+  r = c()
+  for (i in 1:n){
+    r[i] = nrow(files[[i]])
+  }
+  
+  dat.harmony = list()
+  r0 = 0
+  for (i in 1:n){
+    dat.harmony[[i]] = Dat.harmony[(r0+1):(r0+r[i]),]
+    r0 = r0+r[i]
+  }
+  names(dat.harmony) = names(files)
+  
+  for (i in 1:n){
+    filename = paste('harmony', names(dat.harmony[i]))
+    write.FCS(flowFrame(dat.harmony[[i]]), "") names(dat.harmony[i])
+  }
+  return(dat.harmony)
 }
-dat.harmony = list()
-r0 = 0
-for (i in 1:n){
-  dat.harmony[[i]] = Dat.harmony[(r0+1):(r0+r[i]),]
-  r0 = r0+r[i]
-}
-names(dat.harmony) = names(files)
+
+dat.harmony = saveCorrectedFiles(Dat.harmony)
+
+
 
 flowFrame()
 write.FCS()
