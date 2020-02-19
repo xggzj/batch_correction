@@ -44,27 +44,18 @@ dat = lapply(dat, function(x){apply(x, 2, removeOutliers)})
 dat = lapply(dat, scale)
 
 # 2. Batch correction
+bindlist = function(data){
+  Data = data[[1]]
+  n = length(data)
+  for (i in 1:(n-1)){
+    Data = rbind(Data, data[[i+1]])
+  }
+  return(Data)
+}
 # Bind the expression data of all batches into a single matrix
-datBind = function(dat){
-  Dat = dat[[1]]
-  n = length(dat)
-  for (i in 1:(n-1)){
-    Dat = rbind(Dat, dat[[i+1]])
-  }
-  return(Dat)
-}
-Dat = datBind(dat)
-
+Dat = bindlist(dat)
 # Bind the cell type labels of all batches into a single dataframe
-labelBind = function(labels){
-  Label = labels[[1]]
-  n = length(labels)
-  for (i in 1:(n-1)){
-    Label = rbind(Label, labels[[i+1]])
-  }
-  return(Label)
-}
-Label = labelBind(labels)
+Label = bindlist(labels)
 
 # Input the batch number:
 Label$batch = c(rep(1,nrow(dat[[1]])), rep(2,nrow(dat[[2]])))
@@ -95,18 +86,14 @@ saveCorrectedFiles = function(Dat.harmony){
   names(dat.harmony) = names(files)
   
   for (i in 1:n){
-    filename = paste('harmony', names(dat.harmony[i]))
-    write.FCS(flowFrame(dat.harmony[[i]]), "") names(dat.harmony[i])
+    filename = gsub("fcs", "csv", names(dat.harmony[i]))
+    write.csv(dat.harmony[[i]], filename, row.names = FALSE) 
   }
+
   return(dat.harmony)
 }
 
 dat.harmony = saveCorrectedFiles(Dat.harmony)
-
-
-
-flowFrame()
-write.FCS()
 
 # 3. Visualization
 library(ggplot2)
