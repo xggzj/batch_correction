@@ -45,7 +45,7 @@ dat = lapply(dat, scale)
 
 # 2. Batch correction
 library(harmony)
-# Bind all batches into a single expression matrix, Dat
+# Bind the expression data of all batches into a single matrix
 datBind = function(dat){
   Dat = dat[[1]]
   n = length(dat)
@@ -56,11 +56,44 @@ datBind = function(dat){
 }
 Dat = datBind(dat)
 
-# Meta_data: a dataframe with variables to integrate including batch numbers and cell labels
-Meta_data = data.frame(batch = factor(c(rep(1, nrow(labels[[1]])), rep(2, nrow(labels[[2]]))), 
-                       label = factor(c(as.character(labels[[1]]$level1), as.character(labels[[2]]$level1)))))
+# Bind the cell type labels of all batches into a single dataframe
+labelBind = function(labels){
+  Label = labels[[1]]
+  n = length(labels)
+  for (i in 1:(n-1)){
+    Label = rbind(Label, labels[[i+1]])
+  }
+  return(Label)
+}
+Label = labelBind(labels)
 
-Dat.harmony = HarmonyMatrix(Dat, Meta_data, "batch")
+# Input the batch number:
+Label$batch = c(rep(1,nrow(labels[[1]])), rep(2,nrow(labels[[2]])))
+
+# MetaData: a dataframe with variables to integrate including batch numbers and cell type labels
+MetaData = data.frame(batch = Label$batch, label = Label$level1)
+
+#Meta_data = data.frame(batch = factor(c(rep(1, nrow(labels[[1]])), rep(2, nrow(labels[[2]]))), 
+#                       label = factor(c(as.character(labels[[1]]$level1), as.character(labels[[2]]$level1)))))
+
+Dat.harmony = HarmonyMatrix(Dat, MetaData, "batch")
+
+# Save the batch-corrected files separately
+n = length(files)
+r = c()
+for (i in 1:n){
+  r[i] = nrow(files[[i]]) 
+}
+dat.harmony = list()
+r0 = 0
+for (i in 1:n){
+  dat.harmony[[i]] = Dat.harmony[(r0+1):(r0+r[i]),]
+  r0 = r0+r[i]
+}
+names(dat.harmony) = names(files)
+
+flowFrame()
+write.FCS()
 
 # 3. Visualization
 library(ggplot2)
