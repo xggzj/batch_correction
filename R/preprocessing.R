@@ -1,4 +1,5 @@
 library(flowCore)
+library(dplyr)
 
 readInfiles = function(path, filetype = c("fcs", "csv")){
   fileNames = dir(path)
@@ -13,7 +14,6 @@ readInfiles = function(path, filetype = c("fcs", "csv")){
 }
 
 channelFilter = function(file){
-  library(dplyr)
   dat = file@exprs[,-1] 
   colnames(dat) = markernames(file)
   nonEmptyChannels = file@parameters@data[c("name", "desc")] %>% filter(name != desc)
