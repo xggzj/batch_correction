@@ -9,7 +9,7 @@ bindlist = function(data){
   return(Data)
 }
 
-saveCorrectedFiles = function(Dat.harmony){
+saveCorrectedFiles = function(Dat.harmony, outpath){
   n = length(files)
   r = c()
   for (i in 1:n){r[i] = nrow(files[[i]])}
@@ -24,8 +24,9 @@ saveCorrectedFiles = function(Dat.harmony){
   
   for (i in 1:n){
     filename = gsub("fcs", "csv", names(dat.harmony[i]))
-    write.csv(dat.harmony[[i]], filename, row.names = FALSE) 
+    filepath = sapply(filename, function(x){paste(outpath, x, sep = '/')})
+    write.csv(dat.harmony[[i]], filepath, row.names = FALSE) 
   }
-
+  
   return(dat.harmony)
 }
