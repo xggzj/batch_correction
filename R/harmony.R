@@ -23,9 +23,9 @@ saveCorrectedFiles = function(Dat.harmony, outpath){
   names(dat.harmony) = names(files)
   
   for (i in 1:n){
-    filename = gsub("fcs", "csv", names(dat.harmony[i]))
+    filename = names(dat.harmony[i])
     filepath = sapply(filename, function(x){paste(outpath, x, sep = '/')})
-    write.csv(dat.harmony[[i]], filepath, row.names = FALSE) 
+    write.FCS(flowFrame(dat.harmony[[i]]), filepath) 
   }
   
   return(dat.harmony)
